@@ -5,6 +5,13 @@ var db = new Sequelize('postgres://localhost:5432/wikistack', {
   logging: false
 });
 
+function titleMaker(title){
+  if (title){
+    return title.replace(/\s+/g, '_').replace(/\W/g, '');
+  } else {
+    return Math.random().toString(36).substring(2, 7);
+  }
+}
 // build the tables
 // page model
 var Page = db.define('page', {
@@ -13,10 +20,6 @@ var Page = db.define('page', {
     allowNull: false
   },
   urlTitle: {
-    route() {
-      return '/wiki/' + this.urlTitle
-    },
-
     type: Sequelize.STRING,
     allowNull: false
   },
@@ -25,20 +28,30 @@ var Page = db.define('page', {
     allowNull: false
   },
   status: {
-    type: Sequelize.ENUM('open','closed')
+    type: Sequelize.ENUM('open', 'closed')
   },
   date: {
     type: Sequelize.DATE,
     defaultValue: Sequelize.NOW
+  },
+  route: {
+    type: Sequelize.VIRTUAL,
+    get() {
+      return '/wiki/' + this.urlTitle;
+    },
+  },
+}, { hooks: {
+  beforeValidate: function(page){
+    page.urlTitle = titleMaker(page.title);
+    }
   }
-})
+});
 
 // user model
 var User = db.define('user', {
   name: {
     type: Sequelize.STRING,
     allowNull: false,
-    // isAlpha: true
   },
   email: {
     type: Sequelize.STRING,
@@ -47,11 +60,11 @@ var User = db.define('user', {
       isEmail: true
     }
   }
-})
+});
 
 // exports db
 module.exports = {
   db: db,
   Page: Page,
   User: User
-}
+};
