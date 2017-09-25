@@ -3,6 +3,10 @@ var app = express();
 var bodyParser = require('body-parser');
 var morgan = require('morgan');
 var nunjucks = require('nunjucks');
+var Sequelize = require('sequelize');
+
+// requires db
+var models = require('./models');
 
 // tells express to use nunjucks' template
 var env = nunjucks.configure('views', {noCache: true});
@@ -16,10 +20,11 @@ app.get('/', function(req, res, next) {
   res.send('Hello April')
 })
 
-
-
-
-// starts the server - gets localhost/1337 running
-// var server = app.listen(1337, function() {
-//   console.log('listening to port 1337');
-// });
+// call .sync on each model and Sequelize will run against our db to create the tables and columns
+models.db.sync()
+.then(function () {
+  app.listen(3000, function () {
+    console.log('Server is listening on port 3001!');
+  });
+})
+.catch(console.error);
